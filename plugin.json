@@ -1,0 +1,128 @@
+{
+  "id": "solidcraft-laserjoints",
+  "name": "Laser joints",
+  "version": "0.1.0",
+  "description": "Fingerzinken und Schlitze an Kanten von Laserplatten. Kerf und Pressung bleiben Parameter, die Features liegen in der Timeline.",
+  "capabilities": ["commands@0.1"],
+  "runtime": {
+    "module": "plugin.wasm",
+    "entries": [
+      {
+        "name": "make-joints",
+        "effect": "edit",
+        "input_schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["edges"],
+          "properties": {
+            "edges": {
+              "type": "array",
+              "title": "Kanten",
+              "description": "Die langen Kanten der Platte, an denen die Zinken sitzen. Pro Kante eine Reihe Finger oder eine Reihe Schlitze. Die kurze Stirnseite, die nur so lang ist wie die Platte dick, wird abgelehnt. Weitere Kanten können in einem späteren Aufruf dazukommen.",
+              "minItems": 1,
+              "x-solidcraft-selection": {"version": 1, "accept": ["edge"]}
+            },
+            "mode": {
+              "type": "string",
+              "title": "Modus",
+              "description": "Was an den gewählten Kanten entsteht. Finger stehen um die Materialstärke über die Kante hinaus. Schlitze sind die Ausschnitte, die diese Finger aufnehmen, und liegen um eine Fingerbreite daneben, in den Lücken. Die Gegenkante der Nachbarplatte bekommt den anderen Modus, mit derselben Fingerbreite, demselben Kerf und derselben Pressung.",
+              "default": "fingers",
+              "oneOf": [
+                {"const": "fingers", "title": "Finger", "description": "Zinken, die über die Kante hinausstehen."},
+                {"const": "slots", "title": "Schlitze", "description": "Ausschnitte in den Lücken zwischen den Fingern, um eine Fingerbreite versetzt."}
+              ]
+            },
+            "finger_width": {
+              "type": "number",
+              "title": "Fingerbreite",
+              "description": "Nennbreite eines Fingers und des zugehörigen Schlitzes in mm, bevor Kerf und Pressung dazukommen. 0 wählt automatisch das 2,5-fache der Materialstärke, bei einer 3-mm-Platte also 7,5 mm. Der Wert muss größer sein als die Materialstärke, sonst wird der Steg zwischen den Schlitzen zu schmal. Kerf und Pressung ändern diese Nennbreite nicht, nur die gezeichnete Breite.",
+              "default": 0,
+              "minimum": 0,
+              "maximum": 200,
+              "unit": "mm"
+            },
+            "finger_count": {
+              "type": "integer",
+              "title": "Anzahl",
+              "description": "Wie viele gleich breite Abschnitte auf die nutzbare Kantenlänge gelegt werden. Leer lassen: die Fingerbreite bleibt stehen, was übrig ist liegt zu gleichen Teilen an beiden Enden. Eine ungerade Anzahl macht beide Enden gleich: bei Fingern ein Finger, bei Schlitzen Material. Die Schlitze liegen in den Lücken dazwischen. 1 bis 31.",
+              "minimum": 1,
+              "maximum": 31
+            },
+            "kerf": {
+              "type": "number",
+              "title": "Kerf",
+              "description": "Breite des Laserschnitts in mm: das Material, das der Strahl wegbrennt. Voreinstellung 0,15 mm, üblich für Diodenlaser (xTool, LightBurn). Finger werden um die Hälfte des Kerfs breiter gezeichnet, Schlitze um die Hälfte schmaler, damit das geschnittene Teil die Nennbreite behält. 0 eintragen, wenn LightBurn oder xTool den Kerf schon versetzt, sonst wird doppelt ausgeglichen. Der Wert gilt für den ganzen Entwurf: ein späterer Aufruf setzt ihn neu, und schon gebaute Zinken folgen mit.",
+              "default": 0.15,
+              "minimum": 0,
+              "maximum": 5,
+              "unit": "mm"
+            },
+            "fit": {
+              "type": "number",
+              "title": "Pressung",
+              "description": "Zusätzliche Enge der Steckverbindung in mm, nachdem der Kerf schon ausgeglichen ist. 0 heißt: Finger und Schlitze treffen sich genau. Ein positiver Wert macht die Verbindung enger (Presspassung): Finger werden um diesen Betrag breiter, Schlitze um denselben Betrag schmaler, die Teile muss man zusammendrücken. 0,05 mm ist eine leichte Presspassung. Ein negativer Wert, zum Beispiel −0,05, gibt Spiel, die Teile lassen sich leichter stecken. Wirkt zusätzlich zum Kerf und unabhängig von der Fingerbreite. Gilt wie der Kerf für alle Zinken dieses Entwurfs.",
+              "default": 0,
+              "minimum": -2,
+              "maximum": 2,
+              "unit": "mm"
+            },
+            "fit_percent": {
+              "type": "number",
+              "title": "Pressung in Prozent",
+              "description": "Dieselbe Pressung noch einmal als Prozent der Fingerbreite, zusätzlich zu den Millimetern im Feld Pressung. 1 bedeutet ein Prozent: bei 7,5 mm Fingerbreite sind das 0,075 mm. 0 lässt den Prozentanteil weg. Positiv wird enger, negativ lockerer. Für eine feste Zugabe in Millimetern reicht das Feld Pressung.",
+              "default": 0,
+              "minimum": -20,
+              "maximum": 20
+            },
+            "material_thickness": {
+              "type": "number",
+              "title": "Materialstärke",
+              "description": "Wie weit die Finger vorstehen und wie tief die Schlitze in die Platte reichen, in mm. Das ist die Stärke der Platte, die hineingesteckt wird. 0 misst die Wand an der gewählten Kante. Der Schnitt geht immer durch die gemessene eigene Wand, auch wenn hier die Stärke einer anderen Platte steht.",
+              "default": 0,
+              "minimum": 0,
+              "maximum": 80,
+              "unit": "mm"
+            },
+            "corners": {
+              "type": "string",
+              "title": "Ecken",
+              "description": "Was an den beiden Enden der Kante frei bleibt. Einzug lässt dort mindestens eine Materialstärke ohne Zinken, damit die Zinken der Nachbarkante nicht in dieselbe Ecke schneiden. Bündig nutzt die Kante bis in die Ecke, passend wenn die Nachbarseite dort keine eigenen Zinken hat.",
+              "default": "inset",
+              "oneOf": [
+                {"const": "inset", "title": "Einzug", "description": "An jedem Ende bleibt eine Materialstärke frei."},
+                {"const": "flush", "title": "Bündig", "description": "Die Zinken laufen bis an die Ecke."}
+              ]
+            },
+            "corner_margin": {
+              "type": "number",
+              "title": "Eckeneinzug",
+              "description": "Fester freier Abstand an jedem Kantenende in mm. Er ersetzt die Ecken-Option. 0 ist dasselbe wie bündig. Leer lassen übernimmt den Einzug von einer Materialstärke oder, bei Bündig, gar keinen.",
+              "minimum": 0,
+              "maximum": 100,
+              "unit": "mm"
+            }
+          }
+        },
+        "slots": [
+          {"kind": "menu", "name": "Plugins"},
+          {"kind": "ribbon", "name": "Model"}
+        ]
+      }
+    ],
+    "commands": [
+      "document.inspect",
+      "model.edges",
+      "model.faces",
+      "parameters.change",
+      "sketch.create",
+      "sketch.rectangle.two_point",
+      "sketch.finish",
+      "solid.extrude"
+    ],
+    "limits": {
+      "fuel": 200000000,
+      "memory_mib": 64,
+      "deadline_ms": 30000
+    }
+  }
+}
