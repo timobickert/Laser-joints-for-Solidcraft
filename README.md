@@ -1,5 +1,11 @@
 # Laser joints
 
+Achtung: Dieses Plugin wurde komplett von GrokCode erstellt. Die Nutzung erfolgt auf eigene Gefahr.
+
+Ich habe das Tool programmieren lassen um eine schnelle Lösung für ein Problem zu haben.
+
+Das Tool liest keine Dateien, öffnet kein Netzwek und ruft nur feste SolidCraft-Befehle auf.
+
 Fingerzinken und Schlitze für Laserschnitt-Boxen in [SolidCraft](https://github.com/tangency-labs/solidcraft). Das Plugin läuft als WebAssembly-Komponente (`craft:plugin@0.1.0`, Fähigkeit `commands@0.1`) und ruft nur SolidCraft-Befehle auf. Ein erfolgreicher Aufruf ist ein Undo-Schritt. Ein Fehler verwirft alles, was der Aufruf gebaut hat.
 
 Jede Kante wird eine Skizze und eine Extrusion in der Timeline. Die Maße hängen an den Parametern `laser_finger`, `laser_kerf`, `laser_fit`, `laser_depth` und `laser_stock`. Ein späterer Aufruf schreibt dieselben Parameter neu; schon gebaute Zinken folgen mit.
