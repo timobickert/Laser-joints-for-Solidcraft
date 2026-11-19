@@ -10,6 +10,8 @@ Fingerzinken und Schlitze für Laserschnitt-Boxen in [SolidCraft](https://github
 
 Jede Kante wird eine Skizze und eine Extrusion in der Timeline. Die Maße hängen an den Parametern `laser_finger`, `laser_kerf`, `laser_fit`, `laser_depth` und `laser_stock`. Ein späterer Aufruf schreibt dieselben Parameter neu; schon gebaute Zinken folgen mit.
 
+<img width="1157" height="893" alt="image" src="https://github.com/user-attachments/assets/b86871d0-faf3-410d-b06a-9951d7fefa1e" />
+
 ## Was es baut
 
 Die Platte ist ein eigener Körper, die gewählte Kante eine lange Kante, nicht die kurze Stirnseite. Die Wandstärke ist der Abstand der großen Fläche zu ihrer parallelen Gegenfläche.
